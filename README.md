@@ -7,7 +7,7 @@ Very simple Unity Editor extensions
 ![Screenshot](ss/better_hierarchy.png)
 
 
-### Material Editor
+### Material Editor (WIP)
 ![Screenshot](ss/material_editor.png)
 
 # What I want to do
