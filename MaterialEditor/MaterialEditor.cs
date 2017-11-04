@@ -12,6 +12,8 @@ namespace BB_Extensions.MaterialEditor {
 
     // graph
     Vector2 mousePosition = Vector2.zero;
+    Vector2 viewPosition = Vector2.zero;
+    bool movingView = false;
     
     enum SelectionType {
       Nothing, Node, InputSlot, OutputSlot
@@ -24,33 +26,65 @@ namespace BB_Extensions.MaterialEditor {
     int startConnectionNode = -1;
     int startConnectionSlot = -1;
 
-    // sidepanel
-    Vector2 scrollPosition = Vector2.zero;
-
     // config/theme
-    static float sidePanelWidth = 96.0f;
-    static float gridSize = 32.0f;
-    static Color backgroundColor;
-    static Color nodeColor;
-    static Color outputNodeColor;
-    static Color gridColor;
-    static Color connectionColor;
+    static public float gridSize = 32.0f;
+    static public Color backgroundColor;
+    static public Color nodeColor;
+    static public Color outputNodeColor;
+    static public Color gridColor;
+    static public Color gridWiderColor;
+    static public Color connectionColor;
+    static public Color textColor;
+
+    static public GUIStyle windowGuiStyle;
+    static public GUIStyle nodeLabelStyle;
+    static public GUIStyle nodeInputLabelStyle;
+    static public GUIStyle nodeOutputLabelStyle;
+    static public GUIStyle nodeFieldStyle;
 
     static Dictionary<Node.IOSlot.Type, Color> slotColors = new Dictionary<Node.IOSlot.Type, Color>();
 
     static void SetTheme() {
-      backgroundColor = new Color(0.011f, 0.090f, 0.125f);
-      nodeColor = RGB255ToColor(39, 114, 198);
+      backgroundColor = RGB255ToColor(24, 25, 29);
+      nodeColor = RGB255ToColor(38, 39, 43);
       outputNodeColor = RGB255ToColor(132, 65, 10);
-      gridColor = RGB255ToColor(7, 6, 12);
+      gridColor = RGB255ToColor(19, 19, 20);
+      gridWiderColor = RGB255ToColor(14, 14, 16);
       connectionColor = RGB255ToColor(234, 242, 19);
+      textColor = RGB255ToColor(147, 147, 147);
 
       slotColors = new Dictionary<Node.IOSlot.Type, Color>();
-      slotColors[Node.IOSlot.Type.Universal] = RGB255ToColor(0, 0, 0);
-      slotColors[Node.IOSlot.Type.Float] = RGB255ToColor(255, 0, 0);
-      slotColors[Node.IOSlot.Type.Vector2] = RGB255ToColor(120, 98, 64);
-      slotColors[Node.IOSlot.Type.Vector3] = RGB255ToColor(0, 255, 0);
-      slotColors[Node.IOSlot.Type.Color] = RGB255ToColor(0, 255, 255);
+      slotColors[Node.IOSlot.Type.Universal] = RGB255ToColor(96, 96, 183);
+      slotColors[Node.IOSlot.Type.Float] = RGB255ToColor(193, 88, 88);
+      slotColors[Node.IOSlot.Type.Vector2] = RGB255ToColor(44, 192, 193);
+      slotColors[Node.IOSlot.Type.Vector3] = RGB255ToColor(93, 233, 88);
+      slotColors[Node.IOSlot.Type.Color] = RGB255ToColor(245, 245, 245);
+
+      windowGuiStyle = new GUIStyle();
+      windowGuiStyle.fontSize = 12;
+      windowGuiStyle.normal.background = EditorGUIUtility.whiteTexture;
+      windowGuiStyle.normal.textColor = Color.white;
+      windowGuiStyle.alignment = TextAnchor.UpperCenter;
+      windowGuiStyle.fontStyle = FontStyle.Bold;
+      windowGuiStyle.fontSize = 14;
+      
+      nodeLabelStyle = new GUIStyle();
+      nodeLabelStyle.fontSize = 10;
+      nodeLabelStyle.fontStyle = FontStyle.Bold;
+      nodeLabelStyle.normal.textColor = Color.white;
+      nodeLabelStyle.padding = new RectOffset(5, 5, 5, 5);
+
+      nodeInputLabelStyle = new GUIStyle(nodeLabelStyle);
+      nodeInputLabelStyle.alignment = TextAnchor.MiddleLeft;
+
+      nodeOutputLabelStyle = new GUIStyle(nodeLabelStyle);
+      nodeOutputLabelStyle.alignment = TextAnchor.MiddleRight;
+
+      nodeFieldStyle = new GUIStyle(nodeLabelStyle);
+      nodeFieldStyle.focused.textColor = Color.white;
+      nodeFieldStyle.normal.textColor = Color.white;
+      nodeFieldStyle.hover.textColor = Color.white;
+      nodeFieldStyle.alignment = TextAnchor.MiddleRight;
     }
 
     [MenuItem("Window/Better Editor/Material Editor")]
@@ -72,9 +106,6 @@ namespace BB_Extensions.MaterialEditor {
         return;
       }
 
-      //materialData.nodes.Clear();
-      //materialData.connections.Clear();
-
       // output must be here!!!
       if (materialData.nodes.Count == 0) {
         materialData.nodes.Add(new Node(Node.Type.Output));
@@ -83,7 +114,7 @@ namespace BB_Extensions.MaterialEditor {
       SetTheme();
 
       // graph view
-      GUILayout.BeginArea(new Rect(0, 0, position.width - sidePanelWidth, position.height));
+      GUILayout.BeginArea(new Rect(0, 0, position.width, position.height));
 
       // background
       GUI.color = backgroundColor;
@@ -159,6 +190,21 @@ namespace BB_Extensions.MaterialEditor {
               } break;
             }
           }
+        } else if (ev.button == 2) {
+          movingView = true;
+        }
+      } else if (ev.type == EventType.MouseUp) {
+        if (ev.button == 2) {
+          movingView = false;
+        }
+      } else if (ev.type == EventType.MouseDrag) {
+        if (movingView) {
+          viewPosition += ev.delta;
+
+          foreach (Node node in materialData.nodes) {
+            node.rect.x += ev.delta.x;
+            node.rect.y += ev.delta.y;
+          }
         }
       }
 
@@ -182,13 +228,18 @@ namespace BB_Extensions.MaterialEditor {
       // draw nodes
       BeginWindows();
       for (int idx = 0; idx < materialData.nodes.Count; ++idx) {
-        GUI.color = nodeColor;
-        if (materialData.nodes[idx].type == Node.Type.Output) {
-          GUI.color = outputNodeColor;
-        }
+        Rect borderBox = materialData.nodes[idx].rect;
+        borderBox.xMin -= 3.5f;
+        borderBox.yMin -= 3.5f;
+        borderBox.xMax += 3.5f;
+        borderBox.yMax += 3.5f;
+        GUI.color = gridColor;
+        GUI.DrawTexture(borderBox, EditorGUIUtility.whiteTexture);
 
-        materialData.nodes[idx].rect = GUILayout.Window(idx, materialData.nodes[idx].rect, DrawNodeContent, materialData.nodes[idx].name);
-        
+        GUI.color = nodeColor;
+        GUI.contentColor = textColor;
+        materialData.nodes[idx].rect = GUILayout.Window(idx, materialData.nodes[idx].rect, DrawNodeContent, materialData.nodes[idx].name, windowGuiStyle);
+
         // input and output slots
         for (int i = 0; i < materialData.nodes[idx].inputSlots.Count; ++i) {
           if (!materialData.nodes[idx].inputSlots[i].canBeUsed) {
@@ -222,41 +273,71 @@ namespace BB_Extensions.MaterialEditor {
       }
       EndWindows();
 
-      GUILayout.EndArea();
+      // tools
+      GUI.color = new Color(0, 0, 0, 0.82f);
+      GUI.DrawTexture(new Rect(0, 0, position.width, 32), EditorGUIUtility.whiteTexture);
 
-      // sidepanel
-      GUI.color = Color.white;
+      // material name
+      {
+        GUIStyle guiStyle = new GUIStyle();
+        guiStyle.alignment = TextAnchor.MiddleCenter;
+        guiStyle.fontSize = 21;
+        guiStyle.fontStyle = FontStyle.Bold;
+        guiStyle.normal.textColor = Color.white;
 
-      GUILayout.BeginArea(new Rect(position.width - sidePanelWidth, 0, sidePanelWidth, position.height));
-      scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-
-      if (GUILayout.Button("Clear")) {
-        materialData.nodes.Clear();
-        materialData.connections.Clear();
+        GUI.color = Color.white;
+        GUI.contentColor = Color.white;
+        GUI.Label(new Rect(0, 0, position.width, 32), materialData.name, guiStyle);
       }
 
-      if (GUILayout.Button("Clear connections")) {
-        materialData.connections.Clear();
+      // buttons
+      {
+        if (GUI.Button(new Rect(5, 5, 22, 22), "C")) {
+          MaterialEditor_Compiler.Compile(materialData);
+        }
+
+        if (GUI.Button(new Rect(5 + 27, 5, 22, 22), "V")) {
+          ResetView();
+        }
+
+        if (GUI.Button(new Rect(5 + (27 * 2), 5, 22, 22), "R")) {
+          materialData.nodes.Clear();
+          materialData.connections.Clear();
+        }
       }
 
-      if (GUILayout.Button("Compile")) {
-        MaterialEditor_Compiler.Compile(materialData);
-      }
-
-      EditorGUILayout.EndScrollView();
       GUILayout.EndArea();
 
       Repaint();
     }
 
     void DrawGrid() {
-      GUI.color = gridColor;
       for (int y = 0; y < ((float)position.height / gridSize) + 1; ++y) {
-        GUI.DrawTexture(new Rect(0, y * gridSize, position.width, 1), EditorGUIUtility.whiteTexture);
+        if (y % 4 != 0) {
+          GUI.color = gridColor;
+          GUI.DrawTexture(new Rect(0, y * gridSize, position.width, 1.5f), EditorGUIUtility.whiteTexture);
+        }
       }
 
       for (int x = 0; x < ((float)position.width / gridSize) + 1; ++x) {
-        GUI.DrawTexture(new Rect(x * gridSize, 0, 1, position.height), EditorGUIUtility.whiteTexture);
+        if (x % 4 != 0) {
+          GUI.color = gridColor;
+          GUI.DrawTexture(new Rect(x * gridSize, 0, 1.5f, position.height), EditorGUIUtility.whiteTexture);
+        }
+      }
+
+      for (int y = 0; y < ((float)position.height / gridSize) + 1; ++y) {
+        if (y % 4 == 0) {
+          GUI.color = gridWiderColor;
+          GUI.DrawTexture(new Rect(0, y * gridSize, position.width, 3), EditorGUIUtility.whiteTexture);
+        }
+      }
+
+      for (int x = 0; x < ((float)position.width / gridSize) + 1; ++x) {
+        if (x % 4 == 0) {
+          GUI.color = gridWiderColor;
+          GUI.DrawTexture(new Rect(x * gridSize, 0, 3, position.height), EditorGUIUtility.whiteTexture);
+        }
       }
     }
 
@@ -266,14 +347,11 @@ namespace BB_Extensions.MaterialEditor {
       Vector3 startTangent = startPosition + Vector3.right * 50.0f;
       Vector3 endTangent = endPosition + Vector3.left * 50.0f;
 
-      for (int i = 0; i < 6; ++i) {
-        Handles.DrawBezier(startPosition, endPosition, startTangent, endTangent, new Color(color.r, color.g, color.b, 0.055f), null, (i + 1) * 5);
-      }
-
       Handles.DrawBezier(startPosition, endPosition, startTangent, endTangent, color, null, 3.0f);
     }
 
     void DrawNodeContent(int id) {
+      //Node node = materialData.nodes[id];
       materialData.nodes[id].ShowContent();
       GUI.DragWindow();
     }
@@ -419,6 +497,15 @@ namespace BB_Extensions.MaterialEditor {
            materialData.nodes[inputNode].inputSlots[inputSlot].type == Node.IOSlot.Type.Universal)) {
         materialData.connections.Add(new Connection(outputNode, inputNode, outputSlot, inputSlot));
       }
+    }
+
+    void ResetView() {
+      foreach (Node node in materialData.nodes) {
+        node.rect.x -= viewPosition.x;
+        node.rect.y -= viewPosition.y;
+      }
+
+      viewPosition = Vector2.zero;
     }
 
     static Color RGB255ToColor(int r, int g, int b) {

@@ -85,7 +85,7 @@ namespace BB_Extensions.MaterialEditor {
 
       switch (nodeType) {
         case Type.Output: {
-          rect = new Rect(100.0f, 100.0f, 150, 130);
+          rect = new Rect(100.0f, 100.0f, 150, 180);
           inputSlots = new List<IOSlot>();
           inputSlots.Add(new IOSlot("Diffuse", IOSlot.Type.Color));
           inputSlots.Add(new IOSlot("Normal", IOSlot.Type.Color));
@@ -94,16 +94,16 @@ namespace BB_Extensions.MaterialEditor {
           inputSlots.Add(new IOSlot("Opacity", IOSlot.Type.Float));
           inputSlots.Add(new IOSlot("Emission", IOSlot.Type.Color));
           inputSlots.Add(new IOSlot("Heightmap", IOSlot.Type.Color));
-          inputSlots.Add(new IOSlot("Occlusion", IOSlot.Type.Color));
+          inputSlots.Add(new IOSlot("Occlusion", IOSlot.Type.Float));
 
           outputSlots = new List<IOSlot>();
         } break;
 
         case Type.ConstFloat: {
-          rect = new Rect(100.0f, 100.0f, 200, 48);
+          rect = new Rect(100.0f, 100.0f, 96, 48);
           inputSlots = new List<IOSlot>();
           outputSlots = new List<IOSlot>();
-          outputSlots.Add(new IOSlot("Value", IOSlot.Type.Float));
+          outputSlots.Add(new IOSlot("", IOSlot.Type.Float));
         } break;
 
         case Type.ConstVector2: {
@@ -126,7 +126,7 @@ namespace BB_Extensions.MaterialEditor {
         } break;
 
         case Type.ConstColor: {
-          rect = new Rect(100.0f, 100.0f, 200, 110);
+          rect = new Rect(100.0f, 100.0f, 100, 116);
           inputSlots = new List<IOSlot>();
           outputSlots = new List<IOSlot>();
           outputSlots.Add(new IOSlot("", IOSlot.Type.Color));
@@ -137,7 +137,7 @@ namespace BB_Extensions.MaterialEditor {
         } break;
 
         case Type.Texture: {
-          rect = new Rect(100.0f, 100.0f, 300, 126);
+          rect = new Rect(100.0f, 100.0f, 132, 132);
           inputSlots = new List<IOSlot>();
           outputSlots = new List<IOSlot>();
           outputSlots.Add(new IOSlot("", IOSlot.Type.Texture, true, false));
@@ -149,24 +149,24 @@ namespace BB_Extensions.MaterialEditor {
         } break;
 
         case Type.Time: {
-          rect = new Rect(100.0f, 100.0f, 64, 64);
+          rect = new Rect(100.0f, 100.0f, 72, 54);
           inputSlots = new List<IOSlot>();
           outputSlots = new List<IOSlot>();
-          outputSlots.Add(new IOSlot("", IOSlot.Type.Float, false));
+          outputSlots.Add(new IOSlot("T", IOSlot.Type.Float, false));
         } break;
 
         case Type.SinTime: {
-          rect = new Rect(100.0f, 100.0f, 64, 64);
+          rect = new Rect(100.0f, 100.0f, 72, 54);
           inputSlots = new List<IOSlot>();
           outputSlots = new List<IOSlot>();
-          outputSlots.Add(new IOSlot("", IOSlot.Type.Float, false));
+          outputSlots.Add(new IOSlot("T", IOSlot.Type.Float, false));
         } break;
 
         case Type.CosTime: {
-          rect = new Rect(100.0f, 100.0f, 64, 64);
+          rect = new Rect(100.0f, 100.0f, 72, 54);
           inputSlots = new List<IOSlot>();
           outputSlots = new List<IOSlot>();
-          outputSlots.Add(new IOSlot("", IOSlot.Type.Float, false));
+          outputSlots.Add(new IOSlot("T", IOSlot.Type.Float, false));
         } break;
 
         case Type.Add: {
@@ -206,7 +206,7 @@ namespace BB_Extensions.MaterialEditor {
         } break;
 
         case Type.PackVector2: {
-          rect = new Rect(100.0f, 100.0f, 78, 68);
+          rect = new Rect(100.0f, 100.0f, 108, 68);
           inputSlots = new List<IOSlot>();
           inputSlots.Add(new IOSlot("X", IOSlot.Type.Float, false));
           inputSlots.Add(new IOSlot("Y", IOSlot.Type.Float, false));
@@ -215,7 +215,7 @@ namespace BB_Extensions.MaterialEditor {
         } break;
 
         case Type.PackVector3: {
-          rect = new Rect(100.0f, 100.0f, 78, 80);
+          rect = new Rect(100.0f, 100.0f, 108, 80);
           inputSlots = new List<IOSlot>();
           inputSlots.Add(new IOSlot("X", IOSlot.Type.Float, false));
           inputSlots.Add(new IOSlot("Y", IOSlot.Type.Float, false));
@@ -225,7 +225,7 @@ namespace BB_Extensions.MaterialEditor {
         } break;
 
         case Type.PackColor: {
-          rect = new Rect(100.0f, 100.0f, 78, 100);
+          rect = new Rect(100.0f, 100.0f, 108, 100);
           inputSlots = new List<IOSlot>();
           inputSlots.Add(new IOSlot("R", IOSlot.Type.Float, false));
           inputSlots.Add(new IOSlot("G", IOSlot.Type.Float, false));
@@ -258,7 +258,9 @@ namespace BB_Extensions.MaterialEditor {
 
         GUILayout.BeginArea(new Rect(0, 24, areaWidth, rect.height - 24));
         for (int i = 0; i < inputSlots.Count; ++i) {
-          EditorGUILayout.LabelField(inputSlots[i].label);
+          GUI.color = MaterialEditor.textColor;
+          EditorGUILayout.LabelField(inputSlots[i].label, MaterialEditor.nodeInputLabelStyle);
+          GUI.color = Color.white;
         }
         GUILayout.EndArea();
       }
@@ -274,13 +276,17 @@ namespace BB_Extensions.MaterialEditor {
         GUILayout.BeginArea(new Rect(startX, 24, areaWidth, rect.height - 24));
         for (int i = 0; i < outputSlots.Count; ++i) {
           if (!outputSlots[i].useValue) {
-            EditorGUILayout.LabelField(outputSlots[i].label);
+            GUI.color = MaterialEditor.textColor;
+            EditorGUILayout.LabelField(outputSlots[i].label, MaterialEditor.nodeOutputLabelStyle);
+            GUI.color = Color.white;
             continue;
           }
 
           switch (outputSlots[i].type) {
             case IOSlot.Type.Float: {
-              outputSlots[i].floatValue = EditorGUILayout.FloatField(outputSlots[i].label, outputSlots[i].floatValue);
+              GUI.color = MaterialEditor.textColor;
+              outputSlots[i].floatValue = EditorGUILayout.FloatField(outputSlots[i].label, outputSlots[i].floatValue, MaterialEditor.nodeFieldStyle);
+              GUI.color = Color.white;
             } break;
 
             case IOSlot.Type.Vector2: {
@@ -296,7 +302,7 @@ namespace BB_Extensions.MaterialEditor {
             } break;
 
             case IOSlot.Type.Texture: {
-              outputSlots[i].texture2dValue = (Texture2D)EditorGUILayout.ObjectField(outputSlots[i].texture2dValue, typeof(Texture2D), true);
+              outputSlots[i].texture2dValue = (Texture2D)EditorGUILayout.ObjectField(outputSlots[i].texture2dValue, typeof(Texture2D), false);
             } break;
 
             default: {
@@ -309,11 +315,11 @@ namespace BB_Extensions.MaterialEditor {
     }
 
     public Rect GetInputSlotRect(int slot) {
-      return new Rect(rect.x - 16, rect.y + 24 + (EditorGUIUtility.singleLineHeight * slot), 12, 12);
+      return new Rect(rect.x - 16, rect.y + 26 + ((EditorGUIUtility.singleLineHeight + 2) * slot), 12, 12);
     }
     
     public Rect GetOutputSlotRect(int slot) {
-      return new Rect(rect.x + rect.width + 4, rect.y + 24 + (EditorGUIUtility.singleLineHeight * slot), 12, 12);
+      return new Rect(rect.x + rect.width + 4, rect.y + 26 + ((EditorGUIUtility.singleLineHeight + 2) * slot), 12, 12);
     }
   }
 }

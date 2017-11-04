@@ -98,7 +98,10 @@ FallBack ""Diffuse""";
       string normalOutput = "";
       string metallicOutput = "o.Metallic = 0;";
       string smoothnessOutput = "o.Smoothness = 0;";
-      string alphaOutput = "o.Alpha = 0;";
+      string opacityOutput = "o.Alpha = 0;";
+      string emissionOutput = "";
+      string heightMapOutput = "";
+      string occlussionOutput = "";
 
       int materialNodeIndex = -1;
       for (int i = 0; i < materialData.nodes.Count; ++i) {
@@ -144,12 +147,47 @@ FallBack ""Diffuse""";
         }
       }
 
+      // opacity
+      {
+        string code = ParseMaterialInputSlot(materialData, materialNodeIndex, 4);
+        if (code != null) {
+
+        }
+      }
+
+      // emission
+      {
+        string code = ParseMaterialInputSlot(materialData, materialNodeIndex, 5);
+        if (code != null) {
+          emissionOutput = "o.Emission = " + code + ";";
+        }
+      }
+
+      // heightmap
+      {
+        string code = ParseMaterialInputSlot(materialData, materialNodeIndex, 6);
+        if (code != null) {
+
+        }
+      }
+
+      // occlusion
+      {
+        string code = ParseMaterialInputSlot(materialData, materialNodeIndex, 7);
+        if (code != null) {
+          occlussionOutput = "o.Albedo *= " + code + ";";
+        }
+      }
+
       string combined = "void surf (Input IN, inout SurfaceOutputStandard o) {\n";
       combined += albedoOutput + "\n";
       combined += normalOutput + "\n";
       combined += metallicOutput + "\n";
       combined += smoothnessOutput + "\n";
-      combined += alphaOutput + "\n";
+      combined += opacityOutput + "\n";
+      combined += emissionOutput + "\n";
+      combined += heightMapOutput + "\n";
+      combined += occlussionOutput + "\n";
       combined += "\n}";
       return combined;
     }
