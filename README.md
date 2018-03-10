@@ -7,7 +7,7 @@ Very simple Unity Editor extensions
 ![Screenshot](ss/better_hierarchy.png)
 
 
-### Material Editor (WIP)
+### Material Editor (SUSPENDED, same tool will be available in Unity 2018)
 ![Screenshot](ss/material_editor.png)
 
 # What I want to do
@@ -19,7 +19,6 @@ Very simple Unity Editor extensions
 - Better Inspector
   - I propably wont add it but who knows
   - Colors
-  - Better prefabs managment
 - Improve scene objects placements
   - Place on ground
   - ...
